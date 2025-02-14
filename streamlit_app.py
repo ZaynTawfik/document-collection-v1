@@ -1,24 +1,39 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer, WebRtcMode
-import speech_recognition as sr
+from streamlit_webrtc import webrtc_streamer
 import av
+import speech_recognition as sr
 
-def transcribe_audio(audio_frame):
-    recognizer = sr.Recognizer()
-    audio_data = av.AudioFrame.from_ndarray(
-        audio_frame.to_ndarray(), format="f32le", layout="mono"
-    )
-    text = recognizer.recognize_google(audio_data.to_wav_bytes())
-    return text
+# Audio-only configuration
+media_stream_constraints = {
+    "video": False,  # Disable camera
+    "audio": True,   # Enable microphone
+}
 
-ctx = webrtc_streamer(key="voice_input", rtc_configuration={"iceServers": []})
+def audio_frame_callback(frame: av.AudioFrame) -> av.AudioFrame:
+    # Process audio here (if needed)
+    return frame
+
+ctx = webrtc_streamer(
+    key="voice_input",
+    mode="sendonly",  # Only send audio (no video)
+    media_stream_constraints=media_stream_constraints,
+    rtc_configuration={"iceServers": []},  # No STUN/TURN servers for simplicity
+    audio_frame_callback=audio_frame_callback,
+)
+
+# Speech recognition logic
 if ctx.audio_receiver:
+    st.write("Speak now...")
     audio_frames = []
-    for frame in ctx.audio_receiver.iter_frames():
-        audio_frames.append(frame)
-    if audio_frames:
-        user_text = transcribe_audio(audio_frames[-1])  # Process last frame
-        st.session_state.user_text = user_text
-
-if "user_text" in st.session_state:
-    st.write(f"**You said:** {st.session_state.user_text}")
+    try:
+        for frame in ctx.audio_receiver.iter_frames():
+            audio_frames.append(frame)
+            if len(audio_frames) > 20:  # Process after 20 frames (adjust as needed)
+                break
+        if audio_frames:
+            recognizer = sr.Recognizer()
+            audio_data = b"".join([f.to_ndarray().tobytes() for f in audio_frames])
+            text = recognizer.recognize_google(audio_data)
+            st.session_state.user_text = text
+    except Exception as e:
+        st.error(f"Error: {e}")
