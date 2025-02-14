@@ -1,39 +1,29 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer
-import av
+from st_audiorec import st_audiorec
 import speech_recognition as sr
+import io
 
-# Audio-only configuration
-media_stream_constraints = {
-    "video": False,  # Disable camera
-    "audio": True,   # Enable microphone
-}
+# Title
+st.title("AI Document Collection Agent 🗂️")
 
-def audio_frame_callback(frame: av.AudioFrame) -> av.AudioFrame:
-    # Process audio here (if needed)
-    return frame
+# Audio recorder widget
+audio_bytes = st_audiorec()
 
-ctx = webrtc_streamer(
-    key="voice_input",
-    mode="sendonly",  # Only send audio (no video)
-    media_stream_constraints=media_stream_constraints,
-    rtc_configuration={"iceServers": []},  # No STUN/TURN servers for simplicity
-    audio_frame_callback=audio_frame_callback,
-)
-
-# Speech recognition logic
-if ctx.audio_receiver:
-    st.write("Speak now...")
-    audio_frames = []
-    try:
-        for frame in ctx.audio_receiver.iter_frames():
-            audio_frames.append(frame)
-            if len(audio_frames) > 20:  # Process after 20 frames (adjust as needed)
-                break
-        if audio_frames:
-            recognizer = sr.Recognizer()
-            audio_data = b"".join([f.to_ndarray().tobytes() for f in audio_frames])
-            text = recognizer.recognize_google(audio_data)
-            st.session_state.user_text = text
-    except Exception as e:
-        st.error(f"Error: {e}")
+# Speech-to-text processing
+if audio_bytes:
+    # Convert bytes to AudioFile
+    audio_data = io.BytesIO(audio_bytes)
+    audio_data.name = "recording.wav"  # Filename needed for recognizer
+    
+    # Transcribe using Google ASR
+    recognizer = sr.Recognizer()
+    with sr.AudioFile(audio_data) as source:
+        audio = recognizer.record(source)
+        try:
+            user_text = recognizer.recognize_google(audio)
+            st.session_state.user_text = user_text
+            st.write(f"**You said:** {user_text}")
+        except sr.UnknownValueError:
+            st.error("Could not understand audio")
+        except sr.RequestError:
+            st.error("API unavailable")
