@@ -11,17 +11,7 @@ def transcribe_audio(audio_frame):
     text = recognizer.recognize_google(audio_data.to_wav_bytes())
     return text
 
-ctx = webrtc_streamer(
-    key="voice_input",
-    mode=WebRtcMode.SENDRECV,
-    rtc_configuration={"iceServers": []},
-    media_stream_constraints={
-        "audio": True,
-        "video": False,
-    },
-    async_processing=True,
-)
-
+ctx = webrtc_streamer(key="voice_input", rtc_configuration={"iceServers": []})
 if ctx.audio_receiver:
     audio_frames = []
     for frame in ctx.audio_receiver.iter_frames():
