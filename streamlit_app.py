@@ -1,5 +1,5 @@
 import streamlit as st
-from streamlit_webrtc import webrtc_streamer
+from streamlit_webrtc import webrtc_streamer, WebRtcMode
 import speech_recognition as sr
 import av
 
@@ -11,7 +11,17 @@ def transcribe_audio(audio_frame):
     text = recognizer.recognize_google(audio_data.to_wav_bytes())
     return text
 
-ctx = webrtc_streamer(key="voice_input", rtc_configuration={"iceServers": []})
+ctx = webrtc_streamer(
+    key="voice_input",
+    mode=WebRtcMode.SENDRECV,
+    rtc_configuration={"iceServers": []},
+    media_stream_constraints={
+        "audio": True,
+        "video": False,
+    },
+    async_processing=True,
+)
+
 if ctx.audio_receiver:
     audio_frames = []
     for frame in ctx.audio_receiver.iter_frames():
