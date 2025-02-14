@@ -1,5 +1,5 @@
 streamlit
-st_audiorec
+streamlit-audiorec
 SpeechRecognition
 google-cloud-dialogflow==2.30.0
 google-auth==2.25.2
