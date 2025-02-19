@@ -21,7 +21,7 @@ if audio_bytes:
     st.success("Audio recorded! Processing...")
 
 # Load Whisper model (use "tiny" for low RAM, "base" for better accuracy)
-model = whisper.load_model("base")
+model = whisper.load_model("tiny")
 
 # Transcribe audio
 if audio_bytes:
