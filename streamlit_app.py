@@ -15,7 +15,7 @@ audio_bytes = st_audiorec()
 if audio_bytes:
     # Save audio to a temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
-        tmp_file.write(audio_bytes)
+        tmp_file.write(audio_bytes.read())
         audio_path = tmp_file.name
 
     st.success("Audio recorded! Processing...")
