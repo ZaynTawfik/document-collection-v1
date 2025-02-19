@@ -19,3 +19,13 @@ if audio_bytes:
         audio_path = tmp_file.name
 
     st.success("Audio recorded! Processing...")
+
+# Load Whisper model (use "tiny" for low RAM, "base" for better accuracy)
+model = whisper.load_model("base")
+
+# Transcribe audio
+if audio_bytes:
+    result = model.transcribe(audio_path)
+    transcript = result["text"]
+    st.write(f"**You said:** {transcript}")
+    os.unlink(audio_path)  # Delete temp file
