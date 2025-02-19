@@ -24,7 +24,7 @@ if audio_file:
 model = whisper.load_model("tiny")
 
 # Transcribe audio
-if audio_bytes:
+if audio_file:
     result = model.transcribe(audio_path)
     transcript = result["text"]
     st.write(f"**You said:** {transcript}")
