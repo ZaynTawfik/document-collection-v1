@@ -10,12 +10,12 @@ import pytesseract
 st.title("AI Document Collection Agent 🗂️")
 
 # Record audio using st_audiorec
-audio_bytes = st_audiorec()
+audio_file = st_audiorec()
 
-if audio_bytes:
+if audio_file:
     # Save audio to a temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp_file:
-        tmp_file.write(audio_bytes.read())
+        tmp_file.write(audio_file.read())
         audio_path = tmp_file.name
 
     st.success("Audio recorded! Processing...")
